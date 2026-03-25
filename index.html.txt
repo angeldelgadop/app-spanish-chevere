@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spanish Chévere - Feedback Chat</title>
+    <style>
+        /* Paleta de colores basada en el logo */
+        :root {
+            --azul-chevere: #3a3b98; /* Azul del texto */
+            --verde-chevere: #21a049; /* Verde del mapa */
+            --fondo: #f4f7f6;
+        }
+
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: var(--fondo); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        
+        #chat-container { width: 450px; background: white; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; }
+        
+        #header { background: white; padding: 15px; text-align: center; border-bottom: 2px solid var(--azul-chevere); }
+        #header img { width: 180px; height: auto; } /* Ajuste del logo */
+
+        #messages { height: 400px; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background-color: #fafafa; }
+        
+        .message { padding: 12px 16px; border-radius: 15px; max-width: 85%; line-height: 1.4; position: relative; }
+        .user-msg { background: var(--verde-chevere); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .bot-msg { background: white; color: #333; align-self: flex-start; border: 1px solid #ddd; border-bottom-left-radius: 2px; }
+        
+        .feedback-box { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ccc; font-size: 0.85em; color: var(--azul-chevere); }
+
+        #input-area { display: flex; padding: 15px; background: white; border-top: 1px solid #eee; }
+        input { flex: 1; padding: 12px; border: 1.5px solid #ddd; border-radius: 25px; outline: none; transition: border 0.3s; }
+        input:focus { border-color: var(--azul-chevere); }
+        
+        button { background: var(--azul-chevere); color: white; border: none; padding: 10px 20px; margin-left: 10px; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2a2b7a; }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <div id="header">
+        <img src="Logo-SpanishChevere-FondoTransp.png" alt="Spanish Chévere Logo">
+    </div>
+    <div id="messages">
+        <div class="message bot-msg">¡Hola! Soy tu tutor de <b>Spanish Chévere</b>. Escribe cualquier frase y te ayudaré a que suene perfecta.</div>
+    </div>
+    <div id="input-area">
+        <input type="text" id="userInput" placeholder="Escribe tu frase aquí...">
+        <button onclick="enviarMensaje()">Enviar</button>
+    </div>
+</div>
+
+<script>
+    async function enviarMensaje() {
+        const input = document.getElementById('userInput');
+        const messagesDiv = document.getElementById('messages');
+        const texto = input.value.trim();
+
+        if (texto !== "") {
+            // Mostrar mensaje del alumno
+            const userDiv = document.createElement('div');
+            userDiv.className = 'message user-msg';
+            userDiv.textContent = texto;
+            messagesDiv.appendChild(userDiv);
+            input.value = "";
+
+            try {
+                // Llamada al Backend de Python (Flask)
+                const response = await fetch('http://127.0.0.1:5000/corregir', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto: texto })
+                });
+                
+                const data = await response.json();
+                
+                // Mostrar respuesta de la IA
+                const botDiv = document.createElement('div');
+                botDiv.className = 'message bot-msg';
+                botDiv.innerHTML = `<b>Feedback:</b><div class="feedback-box">${data.feedback}</div>`;
+                messagesDiv.appendChild(botDiv);
+            } catch (error) {
+                console.error("Error conectando con el servidor:", error);
+            }
+            
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    }
+</script>
+
+</body>
+</html>
